@@ -1,5 +1,14 @@
+import { AuthProvider } from './providers/AuthProvider'
 import { AppRouterProvider } from './providers/RouterProvider'
 
-export function App() {
+function InnerApp() {
   return <AppRouterProvider />
+}
+
+export function App() {
+  return (
+    <AuthProvider>
+      <InnerApp />
+    </AuthProvider>
+  )
 }

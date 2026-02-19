@@ -1,67 +1,34 @@
 import { Link } from '@tanstack/react-router'
+import { FileText, User } from 'lucide-react'
 
-import { useState } from 'react'
-import { Home, Menu, X } from 'lucide-react'
+const navLinks = [
+  { to: '/editor', label: 'Редактор', icon: FileText },
+  { to: '/profile', label: 'Профиль', icon: User },
+] as const
 
 export function Header() {
-  const [isOpen, setIsOpen] = useState(false)
-
   return (
-    <>
-      <header className="p-4 flex items-center bg-gray-800 text-white shadow-lg">
-        <button
-          onClick={() => setIsOpen(true)}
-          className="p-2 hover:bg-gray-700 rounded-lg transition-colors"
-          aria-label="Open menu"
-        >
-          <Menu size={24} />
-        </button>
-        <h1 className="ml-4 text-xl font-semibold">
-          <Link to="/">
-            <img
-              src="/tanstack-word-logo-white.svg"
-              alt="TanStack Logo"
-              className="h-10"
-            />
-          </Link>
-        </h1>
-      </header>
+    <header className="h-12 px-6 flex items-center justify-between bg-zinc-950 border-b border-zinc-800">
+      <span className="text-xs font-mono tracking-widest text-zinc-500 uppercase select-none">
+        file-editor
+      </span>
 
-      <aside
-        className={`fixed top-0 left-0 h-full w-80 bg-gray-900 text-white shadow-2xl z-50 transform transition-transform duration-300 ease-in-out flex flex-col ${
-          isOpen ? 'translate-x-0' : '-translate-x-full'
-        }`}
-      >
-        <div className="flex items-center justify-between p-4 border-b border-gray-700">
-          <h2 className="text-xl font-bold">Navigation</h2>
-          <button
-            onClick={() => setIsOpen(false)}
-            className="p-2 hover:bg-gray-800 rounded-lg transition-colors"
-            aria-label="Close menu"
-          >
-            <X size={24} />
-          </button>
-        </div>
-
-        <nav className="flex-1 p-4 overflow-y-auto">
+      <nav className="flex items-center gap-1">
+        {navLinks.map(({ to, label, icon: Icon }) => (
           <Link
-            to="/"
-            onClick={() => setIsOpen(false)}
-            className="flex items-center gap-3 p-3 rounded-lg hover:bg-gray-800 transition-colors mb-2"
+            key={to}
+            to={to}
+            className="flex items-center gap-1.5 px-3 py-1.5 rounded text-xs font-medium text-zinc-500 hover:text-zinc-100 transition-colors duration-150"
             activeProps={{
               className:
-                'flex items-center gap-3 p-3 rounded-lg bg-cyan-600 hover:bg-cyan-700 transition-colors mb-2',
+                'flex items-center gap-1.5 px-3 py-1.5 rounded text-xs font-medium text-zinc-100 bg-zinc-800 transition-colors duration-150',
             }}
           >
-            <Home size={20} />
-            <span className="font-medium">Home</span>
+            <Icon size={13} strokeWidth={1.5} />
+            {label}
           </Link>
-
-          {/* Demo Links Start */}
-
-          {/* Demo Links End */}
-        </nav>
-      </aside>
-    </>
+        ))}
+      </nav>
+    </header>
   )
 }

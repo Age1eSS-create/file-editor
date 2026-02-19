@@ -1,18 +1,19 @@
-import { useState } from 'react'
-import type { RegisterData } from '../types/registerData'
-import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/shared/ui/card'
-import { Label } from '@/shared/ui/label'
-import { Input } from '@/shared/ui/input'
+import { useRegister } from '../model'
 import { Button } from '@/shared/ui/button'
+import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/shared/ui/card'
+import { Input } from '@/shared/ui/input'
+import { Label } from '@/shared/ui/label'
 
 export const Register = () => {
-	const [registerData, setRegisterData] = useState<RegisterData>({ name: '', email: '', password: '', confirmPassword: '' })
-
-	const handleRegister = (e: React.FormEvent<HTMLFormElement>) => {
-		e.preventDefault()
-		console.log('Регистрация:', registerData)
-		// Здесь будет логика регистрации
-	}
+	const { 
+		registerData, 
+		setRegisterData, 
+		handleRegister, 
+		isLoading, 
+		error,
+		isSuccess 
+	} = useRegister()
+	
 	return <Card>
 			<CardHeader>
 				<CardTitle>Создать аккаунт</CardTitle>
@@ -21,6 +22,16 @@ export const Register = () => {
 				</CardDescription>
 			</CardHeader>
 			<form onSubmit={handleRegister} className="space-y-4">
+				{error && (
+					<div className="bg-destructive/10 text-destructive px-4 py-2 rounded-md text-sm">
+						{error}
+					</div>
+				)}
+				{isSuccess && (
+					<div className="bg-green-500/10 text-green-600 px-4 py-2 rounded-md text-sm">
+						✅ Регистрация успешна! Добро пожаловать!
+					</div>
+				)}
 				<CardContent className="space-y-4">
 					<div className="space-y-2">
 						<Label htmlFor="register-name">Имя</Label>
@@ -70,8 +81,8 @@ export const Register = () => {
 					</div>
 				</CardContent>
 				<CardFooter className="flex flex-col gap-4">
-					<Button type="submit" className="w-full">
-						Зарегистрироваться
+					<Button type="submit" className="w-full" disabled={isLoading}>
+						{isLoading ? 'Регистрация...' : 'Зарегистрироваться'}
 					</Button>
 					<p className="text-sm text-muted-foreground text-center">
 						Регистрируясь, вы соглашаетесь с условиями использования
