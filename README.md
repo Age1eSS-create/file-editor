@@ -2,7 +2,7 @@
 
 Веб-приложение для редактирования текстовых и кодовых файлов прямо в браузере со встроенным ИИ-ассистентом на базе Google Gemini.
 
-**Демо:** [file-editor-chi.vercel.app/editor](https://file-editor-chi.vercel.app/editor)
+**Демо:** [file-editor-chi.vercel.app](https://file-editor-chi.vercel.app)
 
 ---
 
