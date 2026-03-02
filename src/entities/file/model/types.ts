@@ -8,6 +8,6 @@ export interface FileData {
 	updatedAt: Date
 }
 
-export const ALLOWED_EXTENSIONS = ['.txt', '.md'] as const
+export const ALLOWED_EXTENSIONS = ['.txt', '.md', '.js', '.ts', '.jsx', '.tsx', '.json', '.html', '.css', '.scss', '.sass', '.less', '.styl', '.stylus'] as const
 
 export type AllowedExtension = (typeof ALLOWED_EXTENSIONS)[number]

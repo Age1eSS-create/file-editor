@@ -1,5 +1,6 @@
 import { create } from 'zustand'
 import { devtools } from 'zustand/middleware'
+import { useChatStore } from './useChatStore'
 import type { FileData } from '@/entities/file/model/types'
 import { ALLOWED_EXTENSIONS } from '@/entities/file/model/types'
 import { getFileById, saveFile } from '@/shared/api/db'
@@ -54,6 +55,7 @@ export const useFileStore = create<FileState>()(
 
 					await saveFile(fileData)
 
+					useChatStore.getState().clearChat()
 					set({ currentFile: fileData, isLoading: false, error: null })
 				} catch (error) {
 					const errorMessage =
@@ -92,6 +94,7 @@ export const useFileStore = create<FileState>()(
 
 			clearFile: () => {
 				set({ currentFile: null, error: null })
+				useChatStore.getState().clearChat()
 			},
 
 			loadFile: async (id: string) => {
