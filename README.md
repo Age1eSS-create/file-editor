@@ -1,301 +1,278 @@
-Welcome to your new TanStack app! 
+# FILE-EDITOR
 
-# Getting Started
+Веб-приложение для редактирования текстовых и кодовых файлов прямо в браузере со встроенным ИИ-ассистентом на базе Google Gemini.
 
-To run this application:
+**Демо:** [file-editor-chi.vercel.app/editor](https://file-editor-chi.vercel.app/editor)
+
+---
+
+## Содержание
+
+- [Обзор проекта](#обзор-проекта)
+- [Возможности](#возможности)
+- [Стек технологий](#стек-технологий)
+- [Архитектура](#архитектура)
+- [Структура проекта](#структура-проекта)
+- [Страницы и маршрутизация](#страницы-и-маршрутизация)
+- [Управление состоянием](#управление-состоянием)
+- [ИИ-ассистент](#ии-ассистент)
+- [Хранение данных](#хранение-данных)
+- [Стилизация](#стилизация)
+- [Установка и запуск](#установка-и-запуск)
+- [Скрипты](#скрипты)
+- [Переменные окружения](#переменные-окружения)
+- [Деплой](#деплой)
+
+---
+
+## Обзор проекта
+
+**File Editor** — это клиентское SPA-приложение, которое позволяет загружать, редактировать и скачивать файлы с кодом и текстом. Все данные хранятся локально в браузере (IndexedDB), без серверной части. Ключевая фича — встроенный ИИ-ассистент, который анализирует содержимое файла, отвечает на вопросы, делает code review и может вносить изменения в файл по запросу пользователя.
+
+## Возможности
+
+- **Аутентификация** — регистрация и вход с хранением пользователей в IndexedDB
+- **Загрузка файлов** — поддержка 14+ форматов (.txt, .md, .js, .ts, .jsx, .tsx, .json, .html, .css, .scss, .sass, .less, .styl, .stylus)
+- **Редактирование** — моноширинный текстовый редактор с мгновенным обновлением
+- **Скачивание** — сохранение отредактированного файла обратно на диск
+- **ИИ-ассистент** — чат-панель с Gemini для анализа кода, code review, предложений и автоматического применения изменений
+- **Профиль пользователя** — просмотр информации и выход из аккаунта
+- **Защита маршрутов** — автоматический редирект неавторизованных пользователей
+
+## Стек технологий
+
+| Категория | Технология | Версия |
+|---|---|---|
+| Фреймворк | React | 19.2 |
+| Язык | TypeScript | 5.7 |
+| Сборщик | Vite | 7.1 |
+| Маршрутизация | TanStack Router | 1.132 |
+| Состояние | Zustand | 5.0 |
+| ИИ | Google Generative AI (Gemini) | 0.24 |
+| БД (клиентская) | idb (IndexedDB) | 8.0 |
+| UI-компоненты | Radix UI + shadcn/ui | 1.4 |
+| Стилизация | Tailwind CSS | 4.0 |
+| Иконки | Lucide React | 0.545 |
+| Тестирование | Vitest + Testing Library | 3.0 / 16.2 |
+| Форматирование | Prettier | 3.5 |
+| Линтинг | ESLint (TanStack config) | — |
+
+## Архитектура
+
+Проект построен по методологии **Feature-Sliced Design (FSD)** — архитектурному стандарту для фронтенд-приложений с чётким разделением на слои:
+
+```
+src/
+├── app/        — инициализация, провайдеры, роутер, глобальные стили
+├── pages/      — страницы приложения (композиция виджетов и фич)
+├── widgets/    — составные UI-блоки (Header, UserInfo)
+├── features/   — пользовательские сценарии (auth, ai-chat, fileUpload)
+├── entities/   — бизнес-сущности (file, user)
+└── shared/     — общие утилиты, API-клиенты, стор, UI-примитивы
+```
+
+Каждый слайс внутри слоя имеет стандартную структуру:
+- `model/` — бизнес-логика, типы, хуки
+- `ui/` — React-компоненты
+- `types/` — TypeScript-типы (если нужны отдельно)
+- `index.ts` — публичное API слайса
+
+## Структура проекта
+
+```
+file-editor/
+├── public/
+│   ├── manifest.json
+│   └── robots.txt
+├── src/
+│   ├── app/
+│   │   ├── providers/
+│   │   │   ├── AuthProvider.tsx        # Провайдер аутентификации
+│   │   │   └── RouterProvider.tsx      # Провайдер маршрутизации
+│   │   ├── router/
+│   │   │   ├── RootLayout.tsx          # Корневой layout
+│   │   │   ├── router.tsx              # Инстанс роутера
+│   │   │   └── routerTree.tsx          # Дерево маршрутов с guard'ами
+│   │   ├── App.tsx                     # Корневой компонент
+│   │   └── index.css                   # Глобальные стили и CSS-переменные
+│   ├── entities/
+│   │   ├── file/
+│   │   │   ├── model/types.ts          # FileData, ALLOWED_EXTENSIONS
+│   │   │   ├── model/useFile.ts        # useCurrentFile хук
+│   │   │   └── ui/FileName.tsx         # Компонент имени файла
+│   │   └── user/
+│   │       ├── model/types.ts          # User, CreateUserData
+│   │       └── model/useUser.ts        # useCurrentUser хук
+│   ├── features/
+│   │   ├── ai-chat/
+│   │   │   └── ui/
+│   │   │       ├── AiChatPanel.tsx     # Панель чата
+│   │   │       ├── ChatInput.tsx       # Поле ввода сообщений
+│   │   │       └── ChatMessage.tsx     # Компонент сообщения
+│   │   ├── auth/
+│   │   │   ├── login/                  # Фича входа
+│   │   │   └── register/              # Фича регистрации
+│   │   └── file/
+│   │       └── fileUpload/            # Загрузка файлов
+│   ├── pages/
+│   │   ├── auth/ui/AuthPage.tsx        # Страница входа/регистрации
+│   │   ├── editor/ui/EditorPage.tsx    # Основная страница редактора
+│   │   └── profile/ui/ProfilePage.tsx  # Страница профиля
+│   ├── shared/
+│   │   ├── api/
+│   │   │   ├── ai/geminiClient.ts      # Клиент Google Gemini API
+│   │   │   └── db/
+│   │   │       ├── fileDB.ts           # CRUD для файлов (IndexedDB)
+│   │   │       └── userDB.ts           # CRUD для пользователей (IndexedDB)
+│   │   ├── lib/utils.ts                # Утилита cn() (clsx + tailwind-merge)
+│   │   ├── store/
+│   │   │   ├── useChatStore.ts         # Стор чата с ИИ
+│   │   │   ├── useFileStore.ts         # Стор файлов
+│   │   │   └── useUserStore.ts         # Стор пользователей
+│   │   └── ui/                         # shadcn/ui примитивы (Button, Card, Input, ...)
+│   ├── widgets/
+│   │   ├── header/ui/Header.tsx        # Навигационный хедер
+│   │   └── UserInfo/UserInfo.tsx       # Карточка информации о пользователе
+│   └── main.tsx                        # Точка входа
+├── components.json                      # Конфигурация shadcn/ui
+├── eslint.config.js
+├── prettier.config.js
+├── tsconfig.json
+├── vite.config.ts
+└── package.json
+```
+
+## Страницы и маршрутизация
+
+Маршрутизация реализована на **TanStack Router** с защитой маршрутов через `beforeLoad`:
+
+| Маршрут | Страница | Описание | Доступ |
+|---|---|---|---|
+| `/` | AuthPage | Вход / Регистрация (вкладки) | Только неавторизованные |
+| `/editor` | EditorPage | Редактор файлов + ИИ-чат | Только авторизованные |
+| `/profile` | ProfilePage | Профиль пользователя | Только авторизованные |
+
+**Логика защиты:**
+- Неавторизованный пользователь на `/editor` или `/profile` → редирект на `/`
+- Авторизованный пользователь на `/` → редирект на `/editor`
+
+## Управление состоянием
+
+Глобальное состояние управляется через **Zustand** с devtools. Три независимых стора:
+
+### useUserStore
+- **Данные:** `currentUser`, `users`, `isLoading`, `error`
+- **Действия:** `register`, `login`, `logout`, `loadUsers`, `setCurrentUser`, `clearError`
+- **Персистентность:** `currentUser` сохраняется в `localStorage` (через `partialize`)
+
+### useFileStore
+- **Данные:** `currentFile`, `isLoading`, `error`
+- **Действия:** `uploadFile`, `updateContent`, `downloadFile`, `clearFile`, `loadFile`
+
+### useChatStore
+- **Данные:** `messages`, `isStreaming`
+- **Действия:** `sendMessage`, `applyFileUpdate`, `clearChat`
+
+Доступ к данным из сторов обёрнут в хуки сущностей (`useCurrentUser`, `useCurrentFile`).
+
+## ИИ-ассистент
+
+Встроенный чат работает через **Google Gemini API** (`@google/generative-ai`).
+
+### Возможности ассистента
+- Анализ содержимого открытого файла
+- Ответы на вопросы по коду
+- Code review
+- Предложение улучшений и исправлений
+- Автоматическое применение изменений в файл
+
+### Как работает
+1. При отправке сообщения контекст файла (имя + содержимое) передаётся в начале истории чата
+2. Gemini получает системный промпт с инструкциями на русском языке
+3. Если ИИ предлагает изменения, он оборачивает обновлённое содержимое в маркеры `<<<FILE_UPDATE>>>` / `<<<END_FILE_UPDATE>>>`
+4. Клиент парсит ответ и предлагает пользователю применить изменения одной кнопкой
+
+### Механизм отказоустойчивости
+Клиент последовательно пробует три модели при ошибке 429 (превышение квоты):
+1. `gemini-2.5-flash`
+2. `gemini-2.5-flash-lite`
+3. `gemini-1.5-flash`
+
+Для каждой модели — до 2 повторных попыток с автоматическим определением задержки из сообщения об ошибке.
+
+## Хранение данных
+
+Все данные хранятся **локально в браузере** через IndexedDB (библиотека `idb`):
+
+### База пользователей (`file-editor-db`)
+- Object store: `users`
+- Индекс: `by-email` (уникальный)
+- Операции: создание, поиск по email/ID, верификация, обновление, удаление
+
+### База файлов (`file-editor-files-db`)
+- Object store: `files`
+- Операции: сохранение, получение по ID, получение всех, удаление
+
+Сессия пользователя (`currentUser`) дополнительно дублируется в `localStorage` для быстрого восстановления при перезагрузке.
+
+## Стилизация
+
+- **Tailwind CSS v4** — utility-first CSS через Vite-плагин (`@tailwindcss/vite`)
+- **shadcn/ui** — UI-компоненты на базе Radix UI (стиль: New York, базовый цвет: Stone)
+- **tw-animate-css** — анимации
+- **CSS-переменные** — тема (light/dark) определена в `src/app/index.css`
+- **CVA (class-variance-authority)** — управление вариантами компонентов
+- **cn()** — утилита для слияния классов (`clsx` + `tailwind-merge`)
+
+## Установка и запуск
+
+### Требования
+- Node.js 18+
+- npm 9+
+
+### Установка
 
 ```bash
+git clone <repository-url>
+cd file-editor
 npm install
+```
+
+### Запуск в режиме разработки
+
+```bash
 npm run dev
 ```
 
-# Building For Production
+Приложение будет доступно по адресу `http://localhost:3000`.
 
-To build this application for production:
+### Сборка для продакшена
 
 ```bash
 npm run build
 ```
 
-## Testing
+Собранные файлы будут в директории `dist/`.
 
-This project uses [Vitest](https://vitest.dev/) for testing. You can run the tests with:
+## Скрипты
 
-```bash
-npm run test
+| Скрипт | Команда | Описание |
+|---|---|---|
+| `dev` | `vite --port 3000 --host` | Запуск dev-сервера |
+| `build` | `vite build && tsc` | Сборка для продакшена |
+| `preview` | `vite preview` | Предпросмотр сборки |
+| `test` | `vitest run` | Запуск тестов |
+| `lint` | `eslint` | Проверка линтером |
+| `format` | `prettier` | Форматирование кода |
+| `check` | `prettier --write . && eslint --fix` | Полная проверка и исправление |
+
+## Переменные окружения
+
+Создайте файл `.env` в корне проекта:
+
+```env
+VITE_GEMINI_API_KEY=ваш_ключ_google_gemini_api
 ```
 
-## Styling
+API-ключ можно получить в [Google AI Studio](https://aistudio.google.com/apikey).
 
-This project uses [Tailwind CSS](https://tailwindcss.com/) for styling.
-
-
-## Linting & Formatting
-
-
-This project uses [eslint](https://eslint.org/) and [prettier](https://prettier.io/) for linting and formatting. Eslint is configured using [tanstack/eslint-config](https://tanstack.com/config/latest/docs/eslint). The following scripts are available:
-
-```bash
-npm run lint
-npm run format
-npm run check
-```
-
-
-
-## Routing
-This project uses [TanStack Router](https://tanstack.com/router). The initial setup is a file based router. Which means that the routes are managed as files in `src/routes`.
-
-### Adding A Route
-
-To add a new route to your application just add another a new file in the `./src/routes` directory.
-
-TanStack will automatically generate the content of the route file for you.
-
-Now that you have two routes you can use a `Link` component to navigate between them.
-
-### Adding Links
-
-To use SPA (Single Page Application) navigation you will need to import the `Link` component from `@tanstack/react-router`.
-
-```tsx
-import { Link } from "@tanstack/react-router";
-```
-
-Then anywhere in your JSX you can use it like so:
-
-```tsx
-<Link to="/about">About</Link>
-```
-
-This will create a link that will navigate to the `/about` route.
-
-More information on the `Link` component can be found in the [Link documentation](https://tanstack.com/router/v1/docs/framework/react/api/router/linkComponent).
-
-### Using A Layout
-
-In the File Based Routing setup the layout is located in `src/routes/__root.tsx`. Anything you add to the root route will appear in all the routes. The route content will appear in the JSX where you use the `<Outlet />` component.
-
-Here is an example layout that includes a header:
-
-```tsx
-import { Outlet, createRootRoute } from '@tanstack/react-router'
-import { TanStackRouterDevtools } from '@tanstack/react-router-devtools'
-
-import { Link } from "@tanstack/react-router";
-
-export const Route = createRootRoute({
-  component: () => (
-    <>
-      <header>
-        <nav>
-          <Link to="/">Home</Link>
-          <Link to="/about">About</Link>
-        </nav>
-      </header>
-      <Outlet />
-      <TanStackRouterDevtools />
-    </>
-  ),
-})
-```
-
-The `<TanStackRouterDevtools />` component is not required so you can remove it if you don't want it in your layout.
-
-More information on layouts can be found in the [Layouts documentation](https://tanstack.com/router/latest/docs/framework/react/guide/routing-concepts#layouts).
-
-
-## Data Fetching
-
-There are multiple ways to fetch data in your application. You can use TanStack Query to fetch data from a server. But you can also use the `loader` functionality built into TanStack Router to load the data for a route before it's rendered.
-
-For example:
-
-```tsx
-const peopleRoute = createRoute({
-  getParentRoute: () => rootRoute,
-  path: "/people",
-  loader: async () => {
-    const response = await fetch("https://swapi.dev/api/people");
-    return response.json() as Promise<{
-      results: {
-        name: string;
-      }[];
-    }>;
-  },
-  component: () => {
-    const data = peopleRoute.useLoaderData();
-    return (
-      <ul>
-        {data.results.map((person) => (
-          <li key={person.name}>{person.name}</li>
-        ))}
-      </ul>
-    );
-  },
-});
-```
-
-Loaders simplify your data fetching logic dramatically. Check out more information in the [Loader documentation](https://tanstack.com/router/latest/docs/framework/react/guide/data-loading#loader-parameters).
-
-### React-Query
-
-React-Query is an excellent addition or alternative to route loading and integrating it into you application is a breeze.
-
-First add your dependencies:
-
-```bash
-npm install @tanstack/react-query @tanstack/react-query-devtools
-```
-
-Next we'll need to create a query client and provider. We recommend putting those in `main.tsx`.
-
-```tsx
-import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
-
-// ...
-
-const queryClient = new QueryClient();
-
-// ...
-
-if (!rootElement.innerHTML) {
-  const root = ReactDOM.createRoot(rootElement);
-
-  root.render(
-    <QueryClientProvider client={queryClient}>
-      <RouterProvider router={router} />
-    </QueryClientProvider>
-  );
-}
-```
-
-You can also add TanStack Query Devtools to the root route (optional).
-
-```tsx
-import { ReactQueryDevtools } from "@tanstack/react-query-devtools";
-
-const rootRoute = createRootRoute({
-  component: () => (
-    <>
-      <Outlet />
-      <ReactQueryDevtools buttonPosition="top-right" />
-      <TanStackRouterDevtools />
-    </>
-  ),
-});
-```
-
-Now you can use `useQuery` to fetch your data.
-
-```tsx
-import { useQuery } from "@tanstack/react-query";
-
-import "./App.css";
-
-function App() {
-  const { data } = useQuery({
-    queryKey: ["people"],
-    queryFn: () =>
-      fetch("https://swapi.dev/api/people")
-        .then((res) => res.json())
-        .then((data) => data.results as { name: string }[]),
-    initialData: [],
-  });
-
-  return (
-    <div>
-      <ul>
-        {data.map((person) => (
-          <li key={person.name}>{person.name}</li>
-        ))}
-      </ul>
-    </div>
-  );
-}
-
-export default App;
-```
-
-You can find out everything you need to know on how to use React-Query in the [React-Query documentation](https://tanstack.com/query/latest/docs/framework/react/overview).
-
-## State Management
-
-Another common requirement for React applications is state management. There are many options for state management in React. TanStack Store provides a great starting point for your project.
-
-First you need to add TanStack Store as a dependency:
-
-```bash
-npm install @tanstack/store
-```
-
-Now let's create a simple counter in the `src/App.tsx` file as a demonstration.
-
-```tsx
-import { useStore } from "@tanstack/react-store";
-import { Store } from "@tanstack/store";
-import "./App.css";
-
-const countStore = new Store(0);
-
-function App() {
-  const count = useStore(countStore);
-  return (
-    <div>
-      <button onClick={() => countStore.setState((n) => n + 1)}>
-        Increment - {count}
-      </button>
-    </div>
-  );
-}
-
-export default App;
-```
-
-One of the many nice features of TanStack Store is the ability to derive state from other state. That derived state will update when the base state updates.
-
-Let's check this out by doubling the count using derived state.
-
-```tsx
-import { useStore } from "@tanstack/react-store";
-import { Store, Derived } from "@tanstack/store";
-import "./App.css";
-
-const countStore = new Store(0);
-
-const doubledStore = new Derived({
-  fn: () => countStore.state * 2,
-  deps: [countStore],
-});
-doubledStore.mount();
-
-function App() {
-  const count = useStore(countStore);
-  const doubledCount = useStore(doubledStore);
-
-  return (
-    <div>
-      <button onClick={() => countStore.setState((n) => n + 1)}>
-        Increment - {count}
-      </button>
-      <div>Doubled - {doubledCount}</div>
-    </div>
-  );
-}
-
-export default App;
-```
-
-We use the `Derived` class to create a new store that is derived from another store. The `Derived` class has a `mount` method that will start the derived store updating.
-
-Once we've created the derived store we can use it in the `App` component just like we would any other store using the `useStore` hook.
-
-You can find out everything you need to know on how to use TanStack Store in the [TanStack Store documentation](https://tanstack.com/store/latest).
-
-# Demo files
-
-Files prefixed with `demo` can be safely deleted. They are there to provide a starting point for you to play around with the features you've installed.
-
-# Learn More
-
-You can learn more about all of the offerings from TanStack in the [TanStack documentation](https://tanstack.com).
